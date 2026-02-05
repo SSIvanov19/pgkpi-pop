@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Оплачителна система — Оплачи се</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: #2d3748;
+      padding: 1rem;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      max-width: 520px;
+      width: 100%;
+      padding: 2.5rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header .icon {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 0.35rem;
+    }
+
+    .header p {
+      font-size: 0.95rem;
+      color: #718096;
+      line-height: 1.5;
+    }
+
+    /* ── Form ── */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+      color: #4a5568;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      color: #2d3748;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #f7fafc;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+      background: #fff;
+    }
+
+    .form-group textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    .form-group .error-text {
+      color: #e53e3e;
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+      display: none;
+    }
+
+    .form-group.has-error input,
+    .form-group.has-error textarea {
+      border-color: #e53e3e;
+    }
+
+    .form-group.has-error .error-text {
+      display: block;
+    }
+
+    /* ── Submit Button ── */
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-submit:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Success State ── */
+    .success-message {
+      display: none;
+      text-align: center;
+      padding: 1.5rem 0;
+    }
+
+    .success-message .check-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #48bb78, #38a169);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .success-message .check-icon svg {
+      width: 36px; height: 36px;
+      stroke: #fff;
+      stroke-width: 3;
+      fill: none;
+    }
+
+    .success-message h2 {
+      font-size: 1.3rem;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+    }
+
+    .success-message p {
+      color: #718096;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .btn-new {
+      display: inline-block;
+      margin-top: 1.25rem;
+      padding: 0.65rem 1.5rem;
+      border: 2px solid #667eea;
+      border-radius: 10px;
+      background: transparent;
+      color: #667eea;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .btn-new:hover {
+      background: #667eea;
+      color: #fff;
+    }
+
+    @keyframes pop-in {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ── Error Banner ── */
+    .error-banner {
+      display: none;
+      background: #fff5f5;
+      border: 1px solid #feb2b2;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      color: #c53030;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #a0aec0;
+    }
+
+    .footer a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .footer a:hover { text-decoration: underline; }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .card { padding: 2rem 1.25rem; }
+      .header h1 { font-size: 1.35rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <!-- Header -->
+    <div class="header">
+      <div class="icon">⛪</div>
+      <h1>Оплачителна система</h1>
+      <p>Кажи какво те боли — сподели, бъди чут.</p>
+    </div>
+
+    <!-- Error Banner -->
+    <div class="error-banner" id="errorBanner"></div>
+
+    <!-- Form -->
+    <form id="complaintForm" novalidate>
+      <div class="form-group" id="nameGroup">
+        <label for="nameInput">Вашето име</label>
+        <input type="text" id="nameInput" placeholder="Въведете вашето име" autocomplete="name">
+        <div class="error-text">Моля, въведете вашето име.</div>
+      </div>
+
+      <div class="form-group" id="complaintGroup">
+        <label for="complaintInput">Вашето оплакване</label>
+        <textarea id="complaintInput" placeholder="Опишете вашето оплакване тук..."></textarea>
+        <div class="error-text">Моля, въведете вашето оплакване.</div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <span class="spinner" id="spinner"></span>
+        <span id="btnText">Сподели</span>
+      </button>
+    </form>
+
+    <!-- Success -->
+    <div class="success-message" id="successMessage">
+      <div class="check-icon">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2>Вашето оплакване е важно за нас</h2>
+      <p>Благодарим ви, че споделихте. Вашият глас няма значgit ение.</p>
+      <button class="btn-new" id="newComplaintBtn">Ново оплакване</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2026 <a href="https://support.codingburgas.org" target="_blank" rel="noopener">support.codingburgas.org</a> — Всички права запазени</p>
+  </div>
+
+  <script>
+    // ╔══════════════════════════════════════════════════════════════╗
+    // ║  IMPORTANT: Replace this URL with your Google Apps Script   ║
+    // ║  Web App URL after deploying (see README.md for steps).     ║
+    // ╚══════════════════════════════════════════════════════════════╝
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQlURptZoKmFPJ9-d6KLhkBbYsIWTdquvRbInjJaigC2pZfUMr0ZUa7r8Wz8ae8kxC4A/exec';
+
+    // ── DOM Elements ──
+    const form = document.getElementById('complaintForm');
+    const nameInput = document.getElementById('nameInput');
+    const complaintInput = document.getElementById('complaintInput');
+    const nameGroup = document.getElementById('nameGroup');
+    const complaintGroup = document.getElementById('complaintGroup');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const spinner = document.getElementById('spinner');
+    const successMessage = document.getElementById('successMessage');
+    const errorBanner = document.getElementById('errorBanner');
+    const newComplaintBtn = document.getElementById('newComplaintBtn');
+
+    // ── Clear field errors on input ──
+    nameInput.addEventListener('input', () => nameGroup.classList.remove('has-error'));
+    complaintInput.addEventListener('input', () => complaintGroup.classList.remove('has-error'));
+
+    // ── Form Submit ──
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      // Validate
+      let valid = true;
+      if (!nameInput.value.trim()) {
+        nameGroup.classList.add('has-error');
+        valid = false;
+      }
+      if (!complaintInput.value.trim()) {
+        complaintGroup.classList.add('has-error');
+        valid = false;
+      }
+      if (!valid) return;
+
+      // Check if the URL was configured
+      if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL') {
+        showError('Приложението не е конфигурирано. Моля, задайте URL на Google Apps Script (вижте README.md).');
+        return;
+      }
+
+      // Submit
+      setLoading(true);
+
+      try {
+        const payload = {
+          name: nameInput.value.trim(),
+          complaint: complaintInput.value.trim(),
+          timestamp: new Date().toLocaleString('bg-BG')
+        };
+
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        // With no-cors mode we can't read the response, but if fetch didn't throw, it went through
+        showSuccess();
+      } catch (err) {
+        console.error('Submit error:', err);
+        showError('Възникна грешка при изпращането. Моля, опитайте отново.');
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // ── New complaint button ──
+    newComplaintBtn.addEventListener('click', () => {
+      successMessage.style.display = 'none';
+      form.style.display = 'block';
+      nameInput.value = '';
+      complaintInput.value = '';
+      nameInput.focus();
+    });
+
+    // ── Helpers ──
+    function setLoading(loading) {
+      submitBtn.disabled = loading;
+      spinner.style.display = loading ? 'block' : 'none';
+      btnText.textContent = loading ? 'Изпращане...' : 'Сподели';
+    }
+
+    function showSuccess() {
+      form.style.display = 'none';
+      errorBanner.style.display = 'none';
+      successMessage.style.display = 'block';
+    }
+
+    function showError(msg) {
+      errorBanner.textContent = msg;
+      errorBanner.style.display = 'block';
+    }
+
+    function hideError() {
+      errorBanner.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
